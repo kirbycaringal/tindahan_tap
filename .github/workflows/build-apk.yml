@@ -50,6 +50,25 @@ jobs:
               print("Camera permission already present.")
           EOF
 
+      - name: Fix duplicate Kotlin stdlib classes
+        run: |
+          python3 - <<'EOF'
+          path = 'android/app/build.gradle'
+          s = open(path).read()
+          fix = '''
+          configurations.all {
+              exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+              exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+          }
+          '''
+          if 'kotlin-stdlib-jdk7' not in s:
+              s = s + '\n' + fix
+              open(path, 'w').write(s)
+              print("Kotlin stdlib exclude rules appended.")
+          else:
+              print("Exclude rules already present.")
+          EOF
+
       - name: Grant execute permission for gradlew
         run: chmod +x android/gradlew
 
