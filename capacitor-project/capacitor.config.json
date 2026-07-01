@@ -1,9 +1,0 @@
-{
-  "appId": "com.tindahan.pos",
-  "appName": "Tindahan POS",
-  "webDir": "www",
-  "bundledWebRuntime": false,
-  "server": {
-    "androidScheme": "https"
-  }
-}
