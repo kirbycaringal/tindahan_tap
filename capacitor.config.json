@@ -1,6 +1,6 @@
 {
   "appId": "com.tindahan.pos",
-  "appName": "Tindahan POS",
+  "appName": "TindaScan",
   "webDir": "www",
   "bundledWebRuntime": false,
   "server": {
