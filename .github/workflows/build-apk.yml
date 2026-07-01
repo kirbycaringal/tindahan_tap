@@ -32,6 +32,12 @@ jobs:
       - name: Sync web assets into native project
         run: npx cap sync android
 
+      - name: Install Capacitor Assets generator
+        run: npm install @capacitor/assets --save-dev
+
+      - name: Generate app icons
+        run: npx capacitor-assets generate --android
+
       - name: Add camera permission to AndroidManifest.xml
         run: |
           python3 - <<'EOF'
