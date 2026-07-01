@@ -24,7 +24,7 @@ jobs:
           node-version: '20'
 
       - name: Install Capacitor
-        run: npm install @capacitor/core @capacitor/android
+        run: npm install @capacitor/core @capacitor/android @capacitor/cli
 
       - name: Add Android platform
         run: npx cap add android
