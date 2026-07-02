@@ -200,8 +200,8 @@
     border-bottom:1px solid rgba(255,255,255,0.14);
     margin-bottom:8px;
   }
-  .drawer-head .mark{grid-column:2;justify-self:center;width:46px;height:46px;}
-  .drawer-head .mark .icon{width:46px;height:46px;}
+  .drawer-head .mark{grid-column:2;justify-self:center;width:60px;height:60px;}
+  .drawer-head .mark .icon{width:60px;height:60px;}
   .drawer-close{
     grid-column:3;
     justify-self:end;
@@ -946,11 +946,11 @@
       </div>
       <div class="form-row">
         <label>Product Name</label>
-        <input type="text" id="fName" placeholder="e.g. Lucky Me Pancit Canton">
+        <input type="text" id="fName">
       </div>
       <div class="form-row">
         <label>Price (₱)</label>
-        <input type="number" id="fPrice" step="0.01" min="0" placeholder="0.00">
+        <input type="number" id="fPrice" step="0.01" min="0">
       </div>
       <div class="form-actions" id="formActions">
         <button class="btn btn-primary" id="btnAddNew" type="button">Add New Product</button>
@@ -1004,8 +1004,7 @@
 
     <div class="card about-text">
       <h2><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>About the Developer</h2>
-      <div class="dev-name">Developed by Azure Space (Blue Kirby Caringal)</div>
-      <p>TindaScan is designed and engineered by Blue Kirby Caringal under his independent development studio, Azure Space. The application was born out of a practical, real-world challenge: managing his grandmother's tindahan and experiencing the operational friction of trying to memorize product prices without a centralized system.</p>
+      <p>TindaScan is designed and developed by Blue Kirby Caringal under his independent development studio, Azure Space. The application was born out of a practical, real-world challenge: managing his grandmother's tindahan and experiencing the operational friction of trying to memorize product prices without a centralized system.</p>
       <p>Inspired by modern retail solutions like TindaTap, Azure Space built TindaScan as a lightweight, mobile-exclusive Point-of-Sale (POS) application. By transforming this everyday bottleneck into an intuitive digital solution, Azure Space aims to empower micro-retailers with accessible technology that makes store-keeping simple, accurate, and stress-free.</p>
 
       <!-- SOCIAL LINKS: replace the href="#" placeholders below with your real profile URLs -->
@@ -1097,13 +1096,7 @@ const STORAGE_KEY = 'tindahan_products';
 function loadProducts(){
   let data = localStorage.getItem(STORAGE_KEY);
   if(!data){
-    const dummy = [
-      { barcode:'4800016641503', name:'Lucky Me Pancit Canton', price:15.00 },
-      { barcode:'4800361715019', name:'Coca-Cola 1.5L', price:65.00 },
-      { barcode:'8850006001235', name:'Century Tuna Flakes 155g', price:38.50 }
-    ];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dummy));
-    return dummy;
+    return [];
   }
   try{ return JSON.parse(data); }catch(e){ return []; }
 }
@@ -1115,7 +1108,7 @@ let products = loadProducts();
 /* ============================================================
    INVENTORY BACKUP — export to file / import from file
 ============================================================ */
-function exportInventory(){
+async function exportInventory(){
   if(products.length === 0){
     showToast('No products to back up yet', 'error');
     return;
@@ -1126,16 +1119,41 @@ function exportInventory(){
     exportedAt: new Date().toISOString(),
     products
   };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
   const dateStr = new Date().toISOString().slice(0, 10);
+  const filename = `tindascan-inventory-${dateStr}.json`;
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const file = new File([blob], filename, { type: 'application/json' });
+
+  // Preferred path on phones: native share sheet, which lets the
+  // person actually pick "Save to Files" / Drive / etc. This is far
+  // more reliable on mobile browsers than a silent <a download> click,
+  // which iOS Safari and installed PWAs often ignore or just open as text.
+  if(navigator.canShare && navigator.canShare({ files: [file] })){
+    try{
+      await navigator.share({
+        files: [file],
+        title: 'TindaScan Inventory Backup'
+      });
+      showToast(`Backed up ${products.length} product${products.length === 1 ? '' : 's'}`, 'success');
+      return;
+    }catch(err){
+      if(err.name === 'AbortError') return; // user cancelled the share sheet, do nothing
+      // fall through to download fallback below
+    }
+  }
+
+  // Fallback (desktop / browsers without file sharing): classic
+  // download link. Revoke the object URL after a short delay instead
+  // of immediately, so slower/mobile browsers have time to start the
+  // download before the URL is invalidated.
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `tindascan-inventory-${dateStr}.json`;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(()=> URL.revokeObjectURL(url), 4000);
   showToast(`Backed up ${products.length} product${products.length === 1 ? '' : 's'}`, 'success');
 }
 
@@ -2049,7 +2067,7 @@ if('serviceWorker' in navigator){
 
   // Wait for the page (fonts/assets) to finish loading AND make sure
   // the logo is visible for a minimum amount of time so it doesn't flash.
-  const minDisplayTime = new Promise(resolve => setTimeout(resolve, 700));
+  const minDisplayTime = new Promise(resolve => setTimeout(resolve, 3000));
   const pageReady = new Promise(resolve => {
     if(document.readyState === 'complete') resolve();
     else window.addEventListener('load', resolve, { once:true });
