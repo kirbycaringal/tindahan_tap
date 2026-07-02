@@ -1,6 +1,6 @@
 {
-  "name": "Tindahan POS",
-  "short_name": "Tindahan POS",
+  "name": "TindaScan",
+  "short_name": "TindaScan",
   "description": "Offline-capable sari-sari store point-of-sale and inventory manager",
   "start_url": "./index.html",
   "scope": "./",
